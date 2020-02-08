@@ -7,7 +7,7 @@ from DisplayRoutes import DisplayRoutes
 points = []
 vehicles = []
 
-for number in range(3):
+for number in range(6):
     vehicles.append(Vehicle(str(number), 30))
 
 for _ in range(30):
