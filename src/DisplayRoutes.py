@@ -36,8 +36,8 @@ class DisplayRoutes:
             green = random()
             blue = random()
 
-            self._draw_lines(route["route"], (red, green, blue))
-            self._draw_points(route["route"], (0.3, 0.3, 0.3))  
+            self._draw_lines(route.route, (red, green, blue))
+            self._draw_points(route.route, (0.3, 0.3, 0.3))  
 
         plt.scatter(storehouse.x, storehouse.y, s=80, color=(0.0, 0.0, 0.0))
         plt.show()
