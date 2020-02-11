@@ -3,6 +3,12 @@ from TargetPoint import TargetPoint
 from Vehicle import Vehicle
 from VehicleRouting import VehicleRouting
 from DisplayRoutes import DisplayRoutes
+from ProcessInstances import ProcessInstances
+
+processaDados = ProcessInstances()
+archive = "instancias_teste/teste.txt"
+processaDados.load_data(archive)
+print("Dados:", processaDados.get_edgeWeightSection())
 
 points = []
 vehicles = []
