@@ -1,7 +1,7 @@
 from random import randint
 from TargetPoint import TargetPoint
 from Vehicle import Vehicle
-from VehicleRouting import VehicleRouting
+from VehicleRouting import RoutePoint, VehicleRouting
 from DisplayRoutes import DisplayRoutes
 from ProcessInstances import ProcessInstances
 
@@ -10,6 +10,25 @@ archive = "instancias_teste/teste.txt"
 processaDados.load_data(archive)
 print("Dados:", processaDados.get_edgeWeightSection())
 
+storehouse = None
+points = []
+
+distance_per_point = processaDados.get_edgeWeightSection()
+value_per_point = processaDados.get_demandSection()
+
+for i in range(len(value_per_point)):
+    distances = []
+    for distance in distance_per_point[i]:
+        distances.append(float(distance))
+    
+    if i == 0:
+        storehouse = RoutePoint(i, distances, None, float(value_per_point[i]))
+    else:
+        points.append(RoutePoint(i, distances, None, float(value_per_point[i])))
+
+
+#routes = VehicleRouting().get_routes_using_nearest_neighbor(storehouse, points,)
+'''
 points = []
 vehicles = []
 
@@ -32,3 +51,4 @@ routes = VehicleRouting().get_all_routes_using_nearest_neighbor(storehouse, poin
 print(routes[0])
 
 DisplayRoutes().plot_graph(routes, storehouse, points)
+'''

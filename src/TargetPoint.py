@@ -10,3 +10,4 @@ class TargetPoint:
     def set_coordinates(self, x, y):
         self.x = x
         self.y = y
+        
