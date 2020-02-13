@@ -6,9 +6,9 @@ from DisplayRoutes import DisplayRoutes
 from ProcessInstances import ProcessInstances
 
 processaDados = ProcessInstances()
-archive = "instancias_teste/teste.txt"
+archive = "instancias_teste/P-n16-k8.txt"
 processaDados.load_data(archive)
-print("Dados:", processaDados.get_edgeWeightSection())
+#print("Dados:", processaDados.get_edgeWeightSection())
 
 storehouse = None
 points = []
@@ -20,14 +20,14 @@ for i in range(len(value_per_point)):
     distances = []
     for distance in distance_per_point[i]:
         distances.append(float(distance))
-    
-    if i == 0:
-        storehouse = RoutePoint(i, distances, None, float(value_per_point[i]))
-    else:
-        points.append(RoutePoint(i, distances, None, float(value_per_point[i])))
 
+    points.append(RoutePoint(i, distances, None, float(value_per_point[i][1])))
 
-#routes = VehicleRouting().get_routes_using_nearest_neighbor(storehouse, points,)
+routes = VehicleRouting().get_routes_using_nearest_neighbor(points, 0, float(processaDados.get_capacity()[0]))
+
+for route in routes:
+    print(route)
+
 '''
 points = []
 vehicles = []

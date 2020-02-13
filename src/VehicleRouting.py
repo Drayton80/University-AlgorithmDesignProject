@@ -6,6 +6,9 @@ class Vehicle:
         self.name = name
         self.max_value = max_value
 
+    def __str__(self):
+        return 'Nome: ' + str(self.name) + ', Valor Restante: ' + str(self.max_value) + ';'
+
 
 class RoutePoint:
     def __init__(self, number_id: int, all_points_distances: list, next_point_distance: float, value: float):
@@ -13,7 +16,12 @@ class RoutePoint:
         self.all_points_distances = all_points_distances
         self.next_point_distance = next_point_distance
         self.value = value
-                
+    
+    def __str__(self):
+        return 'ID: ' + str(self.number_id) + ', Distância para o Próximo Ponto: ' + str(self.next_point_distance) + ', Valor:' + str(self.value) + '\n'
+
+    def copy(self):
+        return RoutePoint(self.number_id, self.all_points_distances, self.next_point_distance, self.value)
 
 
 class Route:
@@ -21,6 +29,14 @@ class Route:
         self.vehicle = vehicle
         self.total_distance = total_distance
         self.route_points_sequence = route_points_sequence
+
+    def __str__(self):
+        route_points = ''
+
+        for route_point in self.route_points_sequence:
+            route_points += route_point.__str__()
+
+        return 'Veículo: ' + self.vehicle.__str__() + '\nPontos da Rota:\n' + route_points + 'Distância Percorrida Total da Rota: ' + str(self.total_distance) + '\n'
 
     '''
     def __init__(self, vehicle: Vehicle, route: list, distance: float):
@@ -35,45 +51,60 @@ class VehicleRouting:
     # possíveis rotas que cada veiculo poderia fazer baseado na Heurística do Vizinho mais Próximo
     # 
     # Parâmetros:
-    #   storehouse: uma lista contendo a distância do storehouse para todos os demais pontos
+    #   storehouse_index: um inteiro que indica na lista de pontos qual é o centro de distribuição (aqui denomidado de storehouse)
     #   points: uma lista de RoutePoint, o qual contém todas as informações disponível para cada ponto
-    #   vehicles: são os veículos que farão as rotas para percorrer os pontos
-    def get_routes_using_nearest_neighbor(self, storehouse: RoutePoint, points: list, vehicles: list):
+    #   vehicle_max_value: o número de veículos é ilimitado, então aqui é passado apenas o máximo que eles conseguem carregar
+    def get_routes_using_nearest_neighbor(self, points: list, storehouse_index: int, vehicle_max_value: float):
+        # Cria uma lista com todos os indices dos pontos que não foram visitados ainda:
+        not_visited_points_indexes = list(range(len(points)))
+        # Como os veiculos sempre saem do storehouse, ele certamente já foi visitado:
+        not_visited_points_indexes.remove(storehouse_index)
+        # Cria-se uma lista de rotas vazias:
         routes = []
-        already_visited_points_indexes = []
 
-        for vehicle in vehicles:
+        vehicle_number = 0
+
+        while not_visited_points_indexes:
             # Inicializa uma rota com o storehouse como ponto de partida:
-            route = [storehouse]
+            route = [RoutePoint(points[storehouse_index].number_id, points[storehouse_index].all_points_distances, 0, 0)]
             total_distance = 0
+            current_vehicle = Vehicle(vehicle_number, vehicle_max_value)
             
-            while len(already_visited_points_indexes) != len(points) and vehicle.max_value > 0:
-                # É atribuido ao previous_point o ultimo ponto da rota:
-                previous_point = route[-1]
+            vehicle_returned_to_storehouse = False
 
+            while not vehicle_returned_to_storehouse:
+                # É checado a distância para todos os pontos com relação ao ponto anterior da sequência:
+                all_points_distances = route[-1].all_points_distances
+                
                 closest_point_distance = None
                 closest_point_index = None
 
-                i = 0
-                for point_distance in previous_point.all_points_distances:
-                    # Se o i já foi visitado ignora, se a distância por até o mesmo ponto ignora e
-                    # se o indice for igual ao storehouse também ignora:
-                    if i in already_visited_points_indexes or point_distance == 0 or i == 0:
-                        continue
-                    elif (not closest_point_distance or point_distance < closest_point_distance) and points[i].value < vehicle.max_value:
-                        closest_point_distance = point_distance
-                        closest_point_index = i
+                for index in not_visited_points_indexes:
+                    if (not closest_point_distance or all_points_distances[index] < closest_point_distance) and points[index].value < current_vehicle.max_value:
+                        closest_point_distance = all_points_distances[index]
+                        closest_point_index = index
+
+                # Se não houver um vizinho que seja possível o veiculo visitar 
+                # ou se todos os pontos já foram visitados não haverá outro ponto na sequência:
+                if not closest_point_distance or not not_visited_points_indexes:
+                    # Então restará ao veiculo apenas retornar para o centro de distribuição:
+                    closest_point_distance = route[-1].all_points_distances[storehouse_index]
+                    closest_point_index = storehouse_index
+                    vehicle_returned_to_storehouse = True
+                else:
+                    # Caso ainda haja pontos, remove da lista o ponto que foi visitado:
+                    not_visited_points_indexes.remove(closest_point_index)
                 
                 route[-1].next_point_distance = closest_point_distance
 
-                already_visited_points_indexes.append(closest_point_index)
-                route.append(points[closest_point_index])
+                route.append(points[closest_point_index].copy())
                 total_distance += closest_point_distance
-            
-            route.append(storehouse)
-            total_distance += route[-1].all_points_distances[0]
+                current_vehicle.max_value -= points[closest_point_index].value
 
-            routes.append(Route(vehicle, total_distance, route))
+            route[-1].next_point_distance = 0
+            routes.append(Route(current_vehicle, total_distance, route))
+
+            vehicle_number += 1
 
         return routes
 
