@@ -80,7 +80,7 @@ class VehicleRouting:
                 closest_point_index = None
 
                 for index in not_visited_points_indexes:
-                    if (not closest_point_distance or all_points_distances[index] < closest_point_distance) and points[index].value < current_vehicle.max_value:
+                    if (not closest_point_distance or all_points_distances[index] < closest_point_distance) and points[index].value <= current_vehicle.max_value:
                         closest_point_distance = all_points_distances[index]
                         closest_point_index = index
 
