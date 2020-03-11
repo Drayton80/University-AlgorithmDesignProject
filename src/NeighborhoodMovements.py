@@ -67,7 +67,25 @@ class NeighborhoodMovements:
 
 
     def swap(self, routes: list):
-        pass
+        for index_route in range(len(routes)):
+            # O índice 0 e len-1 não precisam
+            # ser iterados sobre pois ambos representam o storehouse:
+            for index_first in range(1, len(routes[index_route].points_sequence)-1):
+                # Não é preciso checar com pontos anteriores ao primeiro 
+                # ponto pois essa combinação já foi checada em iterações anteriores
+                # e o for começa em index_first+1 pois o ponto não irá trocar de lugar com ele mesmo:
+                for index_second in range(index_first+1, len(routes[index_route].points_sequence)-1):
+                    pass
 
     def two_opt(self, routes: list):
-        pass
+        for index_route in range(len(routes)):
+            # Colocar o final da iteração em len-4 garante que na ultima iteração
+            # o primeiro ponto esteja no máximo 4 posições antes do final da lista
+            # fazendo com que o p2 da aresta 2 esteja exatamente na ultima posição
+            # da lista, garantindo que uma posição fora dela não seja acessada:
+            for first_edge_p1 in range(0, len(routes[index_route].points_sequence)-4):
+                first_edge_p2 = first_edge_p1 + 1
+                # O p1 da segunda aresta sempre fica duas posições além do p2 da primeira aresta
+                # e ir até -1 no final garante que o p2 da aresta 2 no máximo chegue até a ultima posição:
+                for second_edge_p1 in range(first_edge_p2+2, len(routes[index_route].points_sequence)-1):
+                    second_edge_p2 = second_edge_p1 + 1
