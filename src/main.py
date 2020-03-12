@@ -7,7 +7,7 @@ from ProcessInstances import ProcessInstances
 from NeighborhoodMovements import NeighborhoodMovements
 
 processaDados = ProcessInstances()
-archive = "instancias_teste/P-n16-k8.txt"
+archive = "instancias_teste/P-n51-k10.txt"
 processaDados.load_data(archive)
 #print("Dados:", processaDados.get_edgeWeightSection())
 
@@ -29,7 +29,7 @@ routes = VehicleRouting().get_routes_using_nearest_neighbor(points, 0, float(pro
 for route in routes:
     print(route)
 
-routes = NeighborhoodMovements().insertion(routes)
+routes = NeighborhoodMovements().swap(routes)
 
 for route in routes:
     print(route)

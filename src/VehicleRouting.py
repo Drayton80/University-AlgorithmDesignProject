@@ -37,7 +37,7 @@ class Route:
             route_points += route_point.__str__()
 
         return 'Veículo: ' + self.vehicle.__str__() + '\nPontos da Rota:\n' + route_points + 'Distância Percorrida Total da Rota: ' + str(self.total_distance) + '\n'
-
+    
     # Quando a rota é alterada, recalcula a distância total e as novas distâncias até o próximo ponto de cada ponto na rota:
     def recalculate_route_values(self):
         # Recalcula a distância para o próximo ponto de todos com exceção do ultimo (que é o storehouse):
@@ -48,6 +48,15 @@ class Route:
         # Agora que as distâncias para o próximo foram recalculadas é possível corrigir a distância total da rota:
         for point in self.points_sequence:
             self.total_distance += point.next_point_distance
+
+    def insert_point_in_other_index(self, previous_index: int, next_index: int):
+        self.points_sequence.insert(next_index, self.points_sequence.pop(previous_index))
+        self.recalculate_route_values()
+    
+    # Troca dois pontos entre si na rota:
+    def swap_points(self, index1: int, index2: int):
+        self.points_sequence[index1], self.points_sequence[index2] = self.points_sequence[index2], self.points_sequence[index1]
+        self.recalculate_route_values()
 
 class VehicleRouting:    
     # Dado um conjunto de veiculos e uma matriz de distâncias entre cada ponto, retorna as
