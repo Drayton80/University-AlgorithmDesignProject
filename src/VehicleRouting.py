@@ -49,14 +49,19 @@ class Route:
         for point in self.points_sequence:
             self.total_distance += point.next_point_distance
 
-    def insert_point_in_other_index(self, previous_index: int, next_index: int):
+    # Insere um ponto em outro índice da rota:
+    def insert_point_in_other_index(self, previous_index: int, next_index: int, recalculate_route=True):
         self.points_sequence.insert(next_index, self.points_sequence.pop(previous_index))
-        self.recalculate_route_values()
+        
+        if recalculate_route:
+            self.recalculate_route_values()
     
     # Troca dois pontos entre si na rota:
-    def swap_points(self, index1: int, index2: int):
+    def swap_points(self, index1: int, index2: int, recalculate_route=True):
         self.points_sequence[index1], self.points_sequence[index2] = self.points_sequence[index2], self.points_sequence[index1]
-        self.recalculate_route_values()
+        
+        if recalculate_route:
+            self.recalculate_route_values()
 
 class VehicleRouting:    
     # Dado um conjunto de veiculos e uma matriz de distâncias entre cada ponto, retorna as

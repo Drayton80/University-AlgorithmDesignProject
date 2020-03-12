@@ -29,10 +29,11 @@ routes = VehicleRouting().get_routes_using_nearest_neighbor(points, 0, float(pro
 for route in routes:
     print(route)
 
-routes = NeighborhoodMovements().swap(routes)
-
+routes = NeighborhoodMovements().two_opt(routes)
+'''
 for route in routes:
     print(route)
+'''
 '''
 points = []
 vehicles = []

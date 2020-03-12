@@ -52,7 +52,7 @@ class NeighborhoodMovements:
                                 best_movement['point index'] = index_point
                                 best_movement['insertion index'] = index_insertion
         
-        if best_movement['insertion index'] != None:
+        if best_movement['route index'] != None:
             routes_changed = routes.copy()
             # Move o ponto e já recalcula as novas distâncias da rota após o ponto mudar de lugar:
             routes_changed[best_movement['route index']].insert_point_in_other_index(best_movement['point index'], best_movement['insertion index'])
@@ -63,7 +63,7 @@ class NeighborhoodMovements:
 
 
     def swap(self, routes: list):
-        best_movement = {'greater distance reduction': 0, 'route index': None, 'point index': None, 'insertion index': None}
+        best_movement = {'greater distance reduction': 0, 'route index': None, 'first index': None, 'second index': None}
         
         for index_route in range(len(routes)):
             # O índice 0 e len-2 não precisam ser iterados 
@@ -111,7 +111,6 @@ class NeighborhoodMovements:
                         best_movement['second index'] = index_second
 
         if best_movement['route index'] != None:
-            #print("Na rota " + str(best_movement['route index']) + " trocou " + str(routes[best_movement['route index']].points_sequence[best_movement['first index']].number_id) + " com " + str(routes[best_movement['route index']].points_sequence[best_movement['second index']].number_id))
             routes_changed = routes.copy()
             # Troca os pontos entre si e recalcula as distâncias da rota:
             routes_changed[best_movement['route index']].swap_points(best_movement['first index'], best_movement['second index'])
@@ -122,14 +121,60 @@ class NeighborhoodMovements:
 
 
     def two_opt(self, routes: list):
+        best_movement = {'greater distance reduction': 0, 'route index': None}
+
         for index_route in range(len(routes)):
-            # Colocar o final da iteração em len-4 garante que na ultima iteração
-            # o primeiro ponto esteja no máximo 4 posições antes do final da lista
+            # Colocar o final da iteração em len-3 garante que na ultima iteração
+            # o primeiro ponto esteja no máximo 3 posições antes do final da lista
             # fazendo com que o p2 da aresta 2 esteja exatamente na ultima posição
             # da lista, garantindo que uma posição fora dela não seja acessada:
-            for first_edge_p1 in range(0, len(routes[index_route].points_sequence)-4):
+            for first_edge_p1 in range(0, len(routes[index_route].points_sequence)-3):
                 first_edge_p2 = first_edge_p1 + 1
-                # O p1 da segunda aresta sempre fica duas posições além do p2 da primeira aresta
+                # O p1 da segunda aresta sempre fica uma posição além do p2 da primeira aresta
                 # e ir até -1 no final garante que o p2 da aresta 2 no máximo chegue até a ultima posição:
-                for second_edge_p1 in range(first_edge_p2+2, len(routes[index_route].points_sequence)-1):
+                for second_edge_p1 in range(first_edge_p2+1, len(routes[index_route].points_sequence)-1):
                     second_edge_p2 = second_edge_p1 + 1
+
+                    new_route_distance = routes[index_route].total_distance
+                    route_sequence_points = routes[index_route].points_sequence
+
+                    new_route_distance -= route_sequence_points[first_edge_p1 ].next_point_distance
+                    new_route_distance -= route_sequence_points[second_edge_p1].next_point_distance
+
+                    new_route_distance += route_sequence_points[first_edge_p1].all_points_distances[route_sequence_points[second_edge_p1].number_id]
+                    new_route_distance += route_sequence_points[first_edge_p2].all_points_distances[route_sequence_points[second_edge_p2].number_id]
+
+                    route_distance_reduction = routes[index_route].total_distance - new_route_distance
+                    
+                    # Primeiramente checa se a redução de distância que o movimento gera é maior que zero, ou seja, se o movimento
+                    # aplicado teve uma mudança positiva reduzindo a distância total da rota, já nas próximas checagens
+                    # checará se a redução atual é maior do que a melhor redução já feita dentre os movimentos:
+                    if route_distance_reduction > best_movement['greater distance reduction']:
+                        best_movement['greater distance reduction'] = route_distance_reduction
+                        best_movement['route index'] = index_route
+                        # Os unicos pontos necessários para refazer a rota do 2-opt são esses dois abaixo
+                        # pois apenas os indices entre esses dois pontos que serão alterados na rota:
+                        best_movement['e1 p2'] = first_edge_p2
+                        best_movement['e2 p1'] = second_edge_p1
+            
+        if best_movement['route index'] != None:
+            routes_changed = routes.copy()
+            all_points_between_edges = range(best_movement['e1 p2'], best_movement['e2 p1']+1)
+            
+            # No 2-opt é necessario trocar a posição de todos os elementos entre o e1p2 e e2p1
+            # pois a rotação feita nas arestas faz com que isso seja necessário, ou seja, é
+            # preciso fazer um swap entre os pontos opostos da borda até o centro:
+            for i, j in zip(all_points_between_edges, reversed(all_points_between_edges)):
+                if i >= j:
+                    # Se i for igual ou maior a j significa que o centro foi alcançado ou ultrapassado
+                    # então é possível terminar a sequencia:
+                    break
+                else:
+                    # A cada iteração os valores de i crescem e de j decrescem em caminho até o centro:
+                    routes_changed[best_movement['route index']].swap_points(i, j, recalculate_route=False)
+            # Recalcula o valor das rotas:
+            routes_changed[best_movement['route index']].recalculate_route_values()
+
+            return routes_changed
+        else:
+            return routes
