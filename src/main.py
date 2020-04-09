@@ -5,6 +5,7 @@ from VehicleRouting import RoutePoint, VehicleRouting
 from DisplayRoutes import DisplayRoutes
 from ProcessInstances import ProcessInstances
 from NeighborhoodMovements import NeighborhoodMovements
+from VariableNeighborhoodDescent import VariableNeighborhoodDescent
 
 processaDados = ProcessInstances()
 archive = "instancias_teste/P-n51-k10.txt"
@@ -21,15 +22,16 @@ for i in range(len(value_per_point)):
     distances = []
     for distance in distance_per_point[i]:
         distances.append(float(distance))
-    
+
     points.append(RoutePoint(i, distances, None, float(value_per_point[i][1])))
 
 routes = VehicleRouting().get_routes_using_nearest_neighbor(points, 0, float(processaDados.get_capacity()[0]))
 
-for route in routes:
-    print(route)
+# for route in routes:
+#     print(route)
 
-routes = NeighborhoodMovements().apply_movement_in_routes("2-opt", routes)
+#routes = NeighborhoodMovements().apply_movement_in_routes("2-opt", routes)
+routes = VariableNeighborhoodDescent().execute_vnd(routes)
 
 for route in routes:
     print(route)

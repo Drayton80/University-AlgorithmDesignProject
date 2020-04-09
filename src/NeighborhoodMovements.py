@@ -1,5 +1,5 @@
 from VehicleRouting import Route
-
+import copy
 
 class NeighborhoodMovements:
     def _get_routes_total_distance(self, routes: list):
@@ -9,24 +9,25 @@ class NeighborhoodMovements:
             routes_tota_distance += route.total_distance
 
         return routes_tota_distance
-    
+
 
     def insertion(self, route: Route):
-        route_changed = Route(route.vehicle, route.total_distance, route.points_sequence)
+        # route_changed = Route(route.vehicle, route.total_distance, route.points_sequence)
+        route_changed = copy.deepcopy(route)
         best_movement = {'greater distance reduction': 0, 'point index': None, 'insertion index': None}
         # O storehouse é o unico que não pode ser alterado de lugar pois ele deve permanecer
         # sempre como o primeiro e último ponto da rota, então ele pode ser ignorado:
         for index_point in range(1, len(route_changed.points_sequence)-1):
             # Para cada indice de inserção possível, ou seja, do primeiro até o penultimo (pois o storehouse deve ser ignorado)
             for index_insertion in range(1, len(route_changed.points_sequence)-1):
-                # O novo local de inserção não pode ser igual ao proprio ponto nem no local do proximo ponto 
+                # O novo local de inserção não pode ser igual ao proprio ponto nem no local do proximo ponto
                 # logo em seguida na sequência pois isso colocaria o ponto na exata posição em que ele já está:
                 if not index_insertion == index_point and not index_insertion == index_point + 1:
                     new_route_distance = route_changed.total_distance
                     route_sequence_points = route_changed.points_sequence
 
                     # OBS.: como o primeiro e o ultimo ponto da lista sempre são desconsiderados (já que o storehouse não entra
-                    #       nessa checagem do movimento), não é necessário fazer qualquer tratamento com relação 
+                    #       nessa checagem do movimento), não é necessário fazer qualquer tratamento com relação
                     #       ao caso do -1 ou +1 dos indices ultrapassarem os limites da lista:
 
                     # Subtração da aresta anterior ao ponto que será inserido
@@ -36,7 +37,7 @@ class NeighborhoodMovements:
                     # Subtração da aresta em que o ponto será inserido
                     new_route_distance -= route_sequence_points[index_insertion-1].next_point_distance
 
-                    # Soma da conexão entre o ponto anterior ao que foi movido com o posterior ao que foi movido 
+                    # Soma da conexão entre o ponto anterior ao que foi movido com o posterior ao que foi movido
                     new_route_distance += route_sequence_points[index_point-1].all_points_distances[route_sequence_points[index_point+1].number_id]
                     # Soma da conexão entre o primeiro ponto da aresta onde o ponto será inserido com o ponto que será inserido
                     new_route_distance += route_sequence_points[index_insertion-1].all_points_distances[route_sequence_points[index_point].number_id]
@@ -44,7 +45,7 @@ class NeighborhoodMovements:
                     new_route_distance += route_sequence_points[index_point].all_points_distances[route_sequence_points[index_insertion].number_id]
 
                     route_distance_reduction = route_changed.total_distance - new_route_distance
-                    
+
                     # Primeiramente checa se a redução de distância que o movimento gera é maior que zero, ou seja, se o movimento
                     # aplicado teve uma mudança positiva reduzindo a distância total da rota, já nas próximas checagens
                     # checará se a redução atual é maior do que a melhor redução já feita dentre os movimentos:
@@ -52,7 +53,7 @@ class NeighborhoodMovements:
                         best_movement['greater distance reduction'] = route_distance_reduction
                         best_movement['point index'] = index_point
                         best_movement['insertion index'] = index_insertion
-        
+
         if best_movement['greater distance reduction'] > 0:
             # Move o ponto e já recalcula as novas distâncias da rota após o ponto mudar de lugar:
             route_changed.insert_point_in_other_index(best_movement['point index'], best_movement['insertion index'])
@@ -61,13 +62,14 @@ class NeighborhoodMovements:
 
 
     def swap(self, route: Route):
-        route_changed = Route(route.vehicle, route.total_distance, route.points_sequence)
+        # route_changed = Route(route.vehicle, route.total_distance, route.points_sequence)
+        route_changed = copy.deepcopy(route)
         best_movement = {'greater distance reduction': 0, 'first index': None, 'second index': None}
-        # O índice 0 e len-2 não precisam ser iterados 
+        # O índice 0 e len-2 não precisam ser iterados
         # sobre pois o indice 0 representa o storehouse e o len-2
         # deixa o segundo ponto logo antes do storehouse:
         for index_first in range(1, len(route_changed.points_sequence)-2):
-            # Não é preciso checar com pontos anteriores ao primeiro 
+            # Não é preciso checar com pontos anteriores ao primeiro
             # ponto pois essa combinação já foi checada em iterações anteriores
             # e o for começa em index_first+1 pois o ponto não irá trocar de lugar com ele mesmo:
             for index_second in range(index_first+1, len(route_changed.points_sequence)-1):
@@ -95,9 +97,9 @@ class NeighborhoodMovements:
                     new_route_distance += route_sequence_points[index_second].all_points_distances[route_sequence_points[index_first+1].number_id]
                     new_route_distance += route_sequence_points[index_second-1].all_points_distances[route_sequence_points[index_first].number_id]
                     new_route_distance += route_sequence_points[index_first].all_points_distances[route_sequence_points[index_second+1].number_id]
-                
+
                 route_distance_reduction = route_changed.total_distance - new_route_distance
-                
+
                 # Primeiramente checa se a redução de distância que o movimento gera é maior que zero, ou seja, se o movimento
                 # aplicado teve uma mudança positiva reduzindo a distância total da rota, já nas próximas checagens
                 # checará se a redução atual é maior do que a melhor redução já feita dentre os movimentos:
@@ -114,7 +116,8 @@ class NeighborhoodMovements:
 
 
     def two_opt(self, route: Route):
-        route_changed = Route(route.vehicle, route.total_distance, route.points_sequence)
+        # route_changed = Route(route.vehicle, route.total_distance, route.points_sequence)
+        route_changed = copy.deepcopy(route)
         best_movement = {'greater distance reduction': 0, 'e1 p2': None, 'e2 p1': None}
         # Colocar o final da iteração em len-3 garante que na ultima iteração
         # o primeiro ponto esteja no máximo 3 posições antes do final da lista
@@ -137,7 +140,7 @@ class NeighborhoodMovements:
                 new_route_distance += route_sequence_points[first_edge_p2].all_points_distances[route_sequence_points[second_edge_p2].number_id]
 
                 route_distance_reduction = route_changed.total_distance - new_route_distance
-                
+
                 # Primeiramente checa se a redução de distância que o movimento gera é maior que zero, ou seja, se o movimento
                 # aplicado teve uma mudança positiva reduzindo a distância total da rota, já nas próximas checagens
                 # checará se a redução atual é maior do que a melhor redução já feita dentre os movimentos:
@@ -147,7 +150,7 @@ class NeighborhoodMovements:
                     # pois apenas os indices entre esses dois pontos que serão alterados na rota:
                     best_movement['e1 p2'] = first_edge_p2
                     best_movement['e2 p1'] = second_edge_p1
-            
+
         if best_movement['greater distance reduction'] > 0:
             all_points_between_edges = range(best_movement['e1 p2'], best_movement['e2 p1']+1)
             # No 2-opt é necessario trocar a posição de todos os elementos entre o e1p2 e e2p1
@@ -165,17 +168,29 @@ class NeighborhoodMovements:
             route_changed.recalculate_route_values()
 
         return route_changed
-    
+
+
+    def apply_movement_in_route(self, movement_name: str, route: Route):
+
+        if movement_name.lower() == "insertion":
+            route = self.insertion(route)
+        elif movement_name.lower() == "swap":
+            route = self.swap(route)
+        elif movement_name.lower() == "2-opt":
+            route = self.two_opt(route)
+
+        return route
 
     def apply_movement_in_routes(self, movement_name: str, routes: list):
         routes_changed = routes.copy()
 
         for index_route in range(len(routes)):
+            route = Route(routes_changed[index_route].vehicle, routes_changed[index_route].total_distance, routes_changed[index_route].points_sequence)
             if movement_name.lower() == "insertion":
-                routes_changed[index_route] = self.insertion(routes_changed[index_route])
+                routes_changed[index_route] = self.insertion(route)
             elif movement_name.lower() == "swap":
-                routes_changed[index_route] = self.swap(routes_changed[index_route])
+                routes_changed[index_route] = self.swap(route)
             elif movement_name.lower() == "2-opt":
-                routes_changed[index_route] = self.two_opt(routes_changed[index_route])
+                routes_changed[index_route] = self.two_opt(route)
 
         return routes_changed
