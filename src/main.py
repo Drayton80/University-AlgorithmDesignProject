@@ -6,6 +6,7 @@ from DisplayRoutes import DisplayRoutes
 from ProcessInstances import ProcessInstances
 from NeighborhoodMovements import NeighborhoodMovements
 from VariableNeighborhoodDescent import VariableNeighborhoodDescent
+from CreateTable import CreateTable
 
 processaDados = ProcessInstances()
 archive = "instancias_teste/P-n51-k10.txt"
@@ -25,13 +26,15 @@ for i in range(len(value_per_point)):
 
     points.append(RoutePoint(i, distances, None, float(value_per_point[i][1])))
 
+table = CreateTable()
+
 routes = VehicleRouting().get_routes_using_nearest_neighbor(points, 0, float(processaDados.get_capacity()[0]))
 
 # for route in routes:
 #     print(route)
 
 #routes = NeighborhoodMovements().apply_movement_in_routes("2-opt", routes)
-routes = VariableNeighborhoodDescent().execute_vnd(routes)
+routes = VariableNeighborhoodDescent(table).execute_vnd(routes)
 
 for route in routes:
     print(route)
