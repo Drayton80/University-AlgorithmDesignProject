@@ -1,20 +1,18 @@
 from NeighborhoodMovements import NeighborhoodMovements
 from VehicleRouting import Route
+from datetime import datetime
 import copy
 
 class VariableNeighborhoodDescent():
 
     def __vnd(self, route: Route):
-        print("----------------------------------")
-        print("VND")
-        print("Entra a Rota:", route)
+        # print("----------------------------------")
+        # print("VND")
         #Solução atual
         current_route = copy.deepcopy(route)
-        print("current_route id:", id(current_route))
 
         #Melhor solução
         best_route = copy.deepcopy(route)
-        print("best_route id:", id(best_route))
 
         #Número da estrutura de vizinhança
         k = 0
@@ -24,36 +22,36 @@ class VariableNeighborhoodDescent():
         #Quantidade dos algoritmos
         qtd_algorithms = len(types_algorithms)
 
-        print("================================")
+        # print("================================")
+
         while(k < qtd_algorithms):
 
             algorithm = types_algorithms[k]
 
             current_route = NeighborhoodMovements().apply_movement_in_route(algorithm, best_route)
             current_route.recalculate_route_values()
-            print("---------===============-------------")
-            print("Valor do K antes:", k)
 
-            print("----------------------------------")
-            print("current_route.total_distance:", current_route.total_distance)
-            print("best_route.total_distance):", best_route.total_distance)
-            print("----------------------------------")
+            # print("---------===============-------------")
+            # print("current_route.total_distance:", current_route.total_distance)
+            # print("best_route.total_distance):", best_route.total_distance)
+            # print("----------------------------------")
 
             if(current_route.total_distance < best_route.total_distance):
-                print("Aqui!")
                 best_route = copy.deepcopy(current_route)
                 k = 0
             else:
                 k += 1
-            print("Valor do K depois:", k)
-        print("================================")
 
-        print("Sai a rota:", best_route)
-        print("----------------------------------")
+        #     print("Valor do K depois:", k)
+        # print("================================")
+
+        # print("Sai a rota:", best_route)
+        # print("----------------------------------")
+
         return best_route
 
     def execute_vnd(self, routes: list):
-        print("Execute VND!")
+        # print("Execute VND!")
         routes_changed = routes.copy()
 
         for count in range(len(routes_changed)):

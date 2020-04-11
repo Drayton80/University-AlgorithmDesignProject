@@ -9,12 +9,25 @@ class ProcessInstances:
         self.CAPACITY = 0
         self.DEMAND_SECTION = []
         self.EDGE_WEIGHT_SECTION = []
+        self.best_solution = 0
 
     def load_data(self, path_archive):
 
         data = open(path_archive, "r")
         self.data = data
         self.__separate_data(data)
+
+    def read_best_solution(self, path_archive, archive_name):
+        data = open(path_archive, "r")
+        data = data.read()
+        data = data.split("\n")
+
+        for count in range(len(data)):
+
+            result = data[count].split("=")
+
+            if(str(result[0]).strip() == archive_name):
+                self.best_solution = result[1]
 
     def __separate_data(self, data):
 
@@ -36,8 +49,6 @@ class ProcessInstances:
 
         self.EDGE_WEIGHT_SECTION = self.__processPoints(self.__processAtributes(data, "EDGE_WEIGHT_SECTION"))
         #print("EDGE_WEIGHT_SECTION:", self.EDGE_WEIGHT_SECTION, "\n")
-
-        #print("Data 1:", data)
 
     def __processAtributes(self, data, name):
 
@@ -84,3 +95,6 @@ class ProcessInstances:
 
     def get_edgeWeightSection(self):
         return self.EDGE_WEIGHT_SECTION
+
+    def get_best_solution(self):
+        return self.best_solution

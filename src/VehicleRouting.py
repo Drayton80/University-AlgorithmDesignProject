@@ -1,4 +1,5 @@
 from random import randint
+from datetime import datetime
 
 from PlaneGeometry import PlaneGeometry
 from TargetPoint import TargetPoint
@@ -19,7 +20,7 @@ class RoutePoint:
         self.all_points_distances = all_points_distances
         self.next_point_distance = next_point_distance
         self.value = value
-    
+
     def __str__(self):
         return 'ID: ' + str(self.number_id) + ', Distância para o Próximo Ponto: ' + str(self.next_point_distance) + ', Valor:' + str(self.value) + '\n'
 
@@ -40,7 +41,7 @@ class Route:
             route_points += route_point.__str__()
 
         return 'Veículo: ' + self.vehicle.__str__() + '\nPontos da Rota:\n' + route_points + 'Distância Percorrida Total da Rota: ' + str(self.total_distance) + '\n'
-    
+
     # Quando a rota é alterada, recalcula a distância total e as novas distâncias até o próximo ponto de cada ponto na rota:
     def recalculate_route_values(self):
         # Recalcula a distância para o próximo ponto de todos com exceção do ultimo (que é o storehouse):
@@ -55,21 +56,22 @@ class Route:
     # Insere um ponto em outro índice da rota:
     def insert_point_in_other_index(self, previous_index: int, next_index: int, recalculate_route=True):
         self.points_sequence.insert(next_index, self.points_sequence.pop(previous_index))
-        
-        if recalculate_route:
-            self.recalculate_route_values()
-    
-    # Troca dois pontos entre si na rota:
-    def swap_points(self, index1: int, index2: int, recalculate_route=True):
-        self.points_sequence[index1], self.points_sequence[index2] = self.points_sequence[index2], self.points_sequence[index1]
-        
+
         if recalculate_route:
             self.recalculate_route_values()
 
-class VehicleRouting:    
+    # Troca dois pontos entre si na rota:
+    def swap_points(self, index1: int, index2: int, recalculate_route=True):
+        self.points_sequence[index1], self.points_sequence[index2] = self.points_sequence[index2], self.points_sequence[index1]
+
+        if recalculate_route:
+            self.recalculate_route_values()
+
+class VehicleRouting:
+
     # Dado um conjunto de veiculos e uma matriz de distâncias entre cada ponto, retorna as
     # possíveis rotas que cada veiculo poderia fazer baseado na Heurística do Vizinho mais Próximo
-    # 
+    #
     # Parâmetros:
     #   storehouse_index: um inteiro que indica na lista de pontos qual é o centro de distribuição (aqui denomidado de storehouse)
     #   points: uma lista de RoutePoint, o qual contém todas as informações disponível para cada ponto
@@ -89,7 +91,7 @@ class VehicleRouting:
             route = [RoutePoint(points[storehouse_index].number_id, points[storehouse_index].all_points_distances, 0, 0)]
             total_distance = 0
             current_vehicle = Vehicle(vehicle_number, vehicle_max_value)
-            
+
             vehicle_returned_to_storehouse = False
 
             while not vehicle_returned_to_storehouse:
@@ -97,7 +99,7 @@ class VehicleRouting:
                 all_points_distances = route[-1].all_points_distances
 
                 nearest_neighboors = [{'distance': None, 'index': None} for _ in range(random_max_range)]
-                
+
                 # Itera para obter todos os vizinhos mais próximos possíveis:
                 for index_nearest_list in range(len(nearest_neighboors)):
                     nearest_indexes = [nearest_neighboor['index'] for nearest_neighboor in nearest_neighboors]
@@ -118,7 +120,7 @@ class VehicleRouting:
                 # Remove os elementos que estão vazios, ou seja, qualquer um que não for realmente um vizinho mais próximo:
                 nearest_neighboors = [nearest_neighboor for nearest_neighboor in nearest_neighboors if nearest_neighboor['distance'] != None]
 
-                # Se não houver um vizinho que seja possível o veiculo visitar 
+                # Se não houver um vizinho que seja possível o veiculo visitar
                 # ou se todos os pontos já foram visitados não haverá outro ponto na sequência:
                 if not nearest_neighboors or not not_visited_points_indexes:
                     # Então restará ao veiculo apenas retornar para o centro de distribuição:
@@ -138,6 +140,7 @@ class VehicleRouting:
                 current_vehicle.max_value -= points[selected_nearest_neighboor['index']].value
 
             route[-1].next_point_distance = 0
+
             routes.append(Route(current_vehicle, total_distance, route))
 
             vehicle_number += 1

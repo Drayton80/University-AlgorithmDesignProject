@@ -1,4 +1,5 @@
 from random import randint
+from datetime import datetime
 from TargetPoint import TargetPoint
 from Vehicle import Vehicle
 from VehicleRouting import RoutePoint, VehicleRouting
@@ -8,58 +9,92 @@ from NeighborhoodMovements import NeighborhoodMovements
 from VariableNeighborhoodDescent import VariableNeighborhoodDescent
 from CreateTable import CreateTable
 
+import json
+import pandas as pd
+
 processaDados = ProcessInstances()
-archive = "instancias_teste/P-n51-k10.txt"
-processaDados.load_data(archive)
-#print("Dados:", processaDados.get_edgeWeightSection())
+arquivos = ["P-n16-k8", "P-n19-k2", "P-n20-k2", "P-n23-k8", "P-n45-k5", "P-n50-k10", "P-n51-k10", "P-n55-k7"]
+qtd_arquivos = len(arquivos)
+arquivo_otimo = "otimos"
 
-storehouse = None
-points = []
+table = CreateTable(arquivos)
 
-distance_per_point = processaDados.get_edgeWeightSection()
-value_per_point = processaDados.get_demandSection()
+for archive_name in arquivos:
 
-for i in range(len(value_per_point)):
-    distances = []
-    for distance in distance_per_point[i]:
-        distances.append(float(distance))
+    archive = "instancias_teste/" + archive_name + ".txt"
+    best_solution_archive = "info_instancias/" + arquivo_otimo + ".txt"
 
-    points.append(RoutePoint(i, distances, None, float(value_per_point[i][1])))
+    processaDados.load_data(archive)
+    processaDados.read_best_solution(best_solution_archive, archive_name)
 
-table = CreateTable()
+    #print("Dados:", processaDados.get_edgeWeightSection())
 
-routes = VehicleRouting().get_routes_using_nearest_neighbor(points, 0, float(processaDados.get_capacity()[0]))
+    storehouse = None
+    points = []
 
-# for route in routes:
-#     print(route)
+    distance_per_point = processaDados.get_edgeWeightSection()
+    value_per_point = processaDados.get_demandSection()
 
-#routes = NeighborhoodMovements().apply_movement_in_routes("2-opt", routes)
-routes = VariableNeighborhoodDescent(table).execute_vnd(routes)
+    for i in range(len(value_per_point)):
+        distances = []
+        for distance in distance_per_point[i]:
+            distances.append(float(distance))
 
-for route in routes:
-    print(route)
+        points.append(RoutePoint(i, distances, None, float(value_per_point[i][1])))
 
-'''
-points = []
-vehicles = []
+    #Criamos a instância do veículo
+    table.instance_validate(archive_name, "create", 0)
+    table.instance_validate(archive_name, "otimo", int(processaDados.get_best_solution()))
 
-for number in range(10):
-    vehicles.append(Vehicle(str(number), 30))
+    qtd_execuções = 10
+    while(qtd_execuções):
+        #Execução do HC
 
-for _ in range(30):
-    x = randint(0,40)
-    y = randint(0,40)
-    value = randint(5,20)
+        #Iniciamos o time, assim poderemos pegar o tempo da melhor solução
+        start_time = datetime.now()
 
-    points.append(TargetPoint(x, y, value))
+        routes = VehicleRouting().get_routes_using_nearest_neighbor(points, 0, float(processaDados.get_capacity()[0]), random_max_range = 3)
+
+        #Aqui nós finalizamos o tempo, para saber o tempo da atual solução
+        end_time = datetime.now()
+
+        total_hc = 0.0
+        for route in routes:
+            total_hc += route.total_distance
+
+        table.instance_validate(archive_name, "hc_time", (end_time - start_time).total_seconds())
+
+        #Aqui nós salvamos o total da atual distância
+        table.instance_validate(archive_name, "hc_value", total_hc)
 
 
-storehouse = TargetPoint(randint(18,22), randint(18,22), 0)
+        #routes = NeighborhoodMovements().apply_movement_in_routes("2-opt", routes)
+        #Execução do VND
 
+        #Inicamos o tempo para a solução
+        start_time = datetime.now()
 
-routes = VehicleRouting().get_all_routes_using_nearest_neighbor(storehouse, points, vehicles)
+        routes = VariableNeighborhoodDescent().execute_vnd(routes)
 
-print(routes[0])
+        #Agora pegamos o tempo da solução
+        end_time = datetime.now()
 
-DisplayRoutes().plot_graph(routes, storehouse, points)
-'''
+        total_vnd = 0.0
+        for route in routes:
+            total_vnd += route.total_distance
+
+        #Setamos então os valores da solução e seu tempo
+        table.instance_validate(archive_name, "vnd_value", total_vnd)
+        table.instance_validate(archive_name, "vnd_time", (end_time - start_time).total_seconds())
+
+        qtd_execuções -= 1
+
+        # for route in routes:
+        #     print(route)
+
+    table.instance_validate(archive_name, "process_data", "")
+
+table_dataframe = table.get_table_dataframe()
+table_json = table.get_table_json()
+
+table_dataframe.to_excel("resultado/tabela.xlsx")
